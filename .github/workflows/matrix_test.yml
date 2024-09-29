@@ -1,4 +1,4 @@
-name: Docker Image CI Main
+name: Docker Image CI Matrix
 
 on:
   push:
@@ -36,14 +36,12 @@ jobs:
         push: false
         tags: my-image-name:${{ github.sha }}
         buildkits: true
-      retries: 3
 
     - name: Run container
       run: docker run -d --name test-container my-image-name:${{ github.sha }}
 
     - name: Install requirements
       run: docker exec test-container make install
-      retries: 3
 
     - name: Run tests
       run: docker exec test-container make test
