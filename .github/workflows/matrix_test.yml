@@ -1,0 +1,47 @@
+name: Docker Image CI Main
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dockerfile: [
+          '.devcontainer/Dockerfile',
+          '.devcontainer/Dockerfile.dev',
+          '.devcontainer/Dockerfile.prod'
+        ]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build the Docker image
+      run: docker build . --file ${{ matrix.dockerfile }} --tag my-image-name:${{ github.sha }}
+
+    - name: Run container
+      run: docker run -d --name test-container my-image-name:${{ github.sha }}
+
+    - name: Install requirements
+      run: docker exec test-container make install
+
+    - name: Run tests
+      run: docker exec test-container make test
+
+    - name: Run linting
+      run: docker exec test-container make lint
+
+    - name: Run formatting (black)
+      run: docker exec test-container make format
+
+    - name: Make PDF
+      run: docker exec test-container make pdf
+
+    - name: Stop and remove container
+      run: docker stop test-container && docker rm test-container
+
+    - run: echo "🍏 This job's status is ${{ job.status }}."
