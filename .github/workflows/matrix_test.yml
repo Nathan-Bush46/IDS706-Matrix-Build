@@ -1,4 +1,4 @@
-name: Docker Image CI Main
+name: Docker Image CI Matrix Run
 
 on:
   push:
@@ -13,8 +13,8 @@ jobs:
       matrix:
         dockerfile: [
           '.devcontainer/Dockerfile',
-          '.devcontainer/Dockerfile.dev',
-          '.devcontainer/Dockerfile.prod'
+          '.devcontainer/Dockerfile.v1',
+          '.devcontainer/Dockerfile.v2'
         ]
 
     steps:
