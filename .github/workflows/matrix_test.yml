@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Increased timeout
 
     strategy:
       matrix:
@@ -21,44 +20,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Clear Docker cache
-      run: docker system prune -af
-
     - name: Build the Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        file: ${{ matrix.dockerfile }}
-        push: false
-        tags: my-image-name:${{ github.sha }}
-        buildkits: true
+      run: docker build . --file .devcontainer/${{ matrix.dockerfile }} --tag my-image-name:${{ matrix.dockerfile }}-$(date +%s)
 
-    - name: Run container
-      run: docker run -d --name test-container my-image-name:${{ github.sha }}
-
-    - name: Install requirements
-      run: docker exec test-container make install
-
-    - name: Run tests
-      run: docker exec test-container make test
-
-    - name: Run linting
-      run: docker exec test-container make lint
-
-    - name: Run formatting (black)
-      run: docker exec test-container make format
-
-    - name: Make PDF
-      run: docker exec test-container make pdf
-
-    - name: Stop and remove container
-      run: docker stop test-container && docker rm test-container
-      if: always()
-
-    - name: Job status
-      run: echo "🍏 This job's status is ${{ job.status }}."
-      if: always()
+    - name: install requirements
+      run: |
+        make install
+    - name: run test
+      run: |
+        make test
+    - name: run linting
+      run: |
+        make lint
+    - name: run formatting (black)
+      run: |
+        make format
+    - name: make pdf
+      run: |
+        make pdf
+    - run: echo "🍏 This job's status is ${{ job.status }}."
