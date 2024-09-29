@@ -19,23 +19,23 @@ jobs:
         ]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file .devcontainer/${{ matrix.dockerfile }} --tag my-image-name:${{ matrix.dockerfile }}-$(date +%s)
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
+        run: docker build . --file .devcontainer/${{ matrix.dockerfile }}
 
-    - name: install requirements
-      run: |
-        make install
-    - name: run test
-      run: |
-        make test
-    - name: run linting
-      run: |
-        make lint
-    - name: run formatting (black)
-      run: |
-        make format
-    - name: make pdf
-      run: |
-        make pdf
-    - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: install requirements
+        run: |
+          make install
+      - name: run test
+        run: |
+          make test
+      - name: run linting
+        run: |
+          make lint
+      - name: run formatting (black)
+        run: |
+          make format
+      - name: make pdf
+        run: |
+          make pdf
+      - run: echo "🍏 This job's status is ${{ job.status }}."
