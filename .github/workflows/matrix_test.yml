@@ -1,4 +1,4 @@
-name: Docker Image CI Matrix Run
+name: Docker Image CI Main
 
 on:
   push:
@@ -9,25 +9,41 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Increased timeout
+
     strategy:
       matrix:
         dockerfile: [
-          '.devcontainer/Dockerfile',
-          '.devcontainer/Dockerfile.v1',
-          '.devcontainer/Dockerfile.v2'
+          'Dockerfile',
+          'Dockerfile_3.10',
+          'Dockerfile_3.8'
         ]
 
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Clear Docker cache
+      run: docker system prune -af
+
     - name: Build the Docker image
-      run: docker build . --file ${{ matrix.dockerfile }} --tag my-image-name:${{ github.sha }}
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ${{ matrix.dockerfile }}
+        push: false
+        tags: my-image-name:${{ github.sha }}
+        buildkits: true
+      retries: 3
 
     - name: Run container
       run: docker run -d --name test-container my-image-name:${{ github.sha }}
 
     - name: Install requirements
       run: docker exec test-container make install
+      retries: 3
 
     - name: Run tests
       run: docker exec test-container make test
@@ -43,5 +59,8 @@ jobs:
 
     - name: Stop and remove container
       run: docker stop test-container && docker rm test-container
+      if: always()
 
-    - run: echo "🍏 This job's status is ${{ job.status }}."
+    - name: Job status
+      run: echo "🍏 This job's status is ${{ job.status }}."
+      if: always()
